@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookappfrontend
+spec:
+  selector:
+    app: bookappfrontend
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 80
+      nodePort: 30009
+  type: LoadBalancer
