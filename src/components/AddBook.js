@@ -1,42 +1,60 @@
-// src/components/AddBook.js
 import React, { useState } from "react";
+import { TextField, Button, Box } from "@mui/material";
 import { addBook } from "../api";
+import Footer from "./Footer";
 
-const AddBook = () => {
+const AddBook = ({ onBookAdded }) => {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
+  const [status, setStatus] = useState({ message: "", type: "" });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     addBook({ title, author })
       .then((response) => {
-        console.log("Book added:", response.data);
+        setStatus({ message: "Book added successfully!", type: "success" });
+        onBookAdded();
         setTitle("");
         setAuthor("");
       })
-      .catch((error) => console.error("Error adding book:", error));
+      .catch((error) => {
+        setStatus({ message: "Error adding book!", type: "error" });
+      });
+  };
+
+  const handleClearStatus = () => {
+    setStatus({ message: "", type: "" });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label>Title</label>
-        <input
-          type="text"
+    <>
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+        <TextField
+          label="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          fullWidth
+          margin="normal"
         />
-      </div>
-      <div>
-        <label>Author</label>
-        <input
-          type="text"
+        <TextField
+          label="Author"
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
+          fullWidth
+          margin="normal"
         />
-      </div>
-      <button type="submit">Add Book</button>
-    </form>
+        <Button type="submit" variant="contained" color="primary">
+          Add Book
+        </Button>
+      </Box>
+      {status.message && (
+        <Footer
+          message={status.message}
+          type={status.type}
+          onClear={handleClearStatus}
+        />
+      )}
+    </>
   );
 };
 
