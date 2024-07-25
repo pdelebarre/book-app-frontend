@@ -1,131 +1,100 @@
-import React, { useState, useEffect } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Paper,
-  Button,
-  Link,
-} from "@mui/material";
-import { getBooks, deleteBook, updateBook } from "../api";
+// src/components/BookList.js
+import React, { useState, useEffect } from 'react';
+import { Box, Button } from '@mui/material';
+import { getBooks, deleteBook, updateBook, addBook } from '../api';
+import Fuse from 'fuse.js';
+import BookTable from './BookTable';
+import SearchBar from './SearchBar';
+import PopupForm from './PopupForm';
 
 const BookList = () => {
   const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [editingBook, setEditingBook] = useState(null);
-
-  const fetchBooks = () => {
-    getBooks()
-      .then((response) => setBooks(response.data))
-      .catch((error) => console.error("Error fetching books:", error));
-  };
+  const [openPopup, setOpenPopup] = useState(false);
 
   useEffect(() => {
     fetchBooks();
   }, []);
 
+  const fetchBooks = () => {
+    getBooks()
+      .then(response => {
+        const booksData = response.data || [];
+        setBooks(booksData);
+        setFilteredBooks(booksData);
+      })
+      .catch(error => console.error('Error fetching books:', error));
+  };
+
   const handleDelete = (id) => {
     deleteBook(id)
       .then(() => fetchBooks())
-      .catch((error) => console.error("Error deleting book:", error));
+      .catch(error => console.error('Error deleting book:', error));
   };
 
   const handleEdit = (book) => {
     setEditingBook(book);
+    setOpenPopup(true);
   };
 
-  const handleUpdate = (e) => {
-    e.preventDefault();
-    const { id, title, author } = editingBook;
-    updateBook(id, { title, author })
-      .then(() => {
-        setEditingBook(null);
-        fetchBooks();
-      })
-      .catch((error) => console.error("Error updating book:", error));
+  const handleAdd = () => {
+    setEditingBook({ id: null, title: '', author: '' });
+    setOpenPopup(true);
+  };
+
+  const handleSubmit = () => {
+    if (editingBook.id) {
+      updateBook(editingBook.id, editingBook)
+        .then(() => {
+          setOpenPopup(false);
+          fetchBooks();
+        })
+        .catch(error => console.error('Error updating book:', error));
+    } else {
+      addBook(editingBook)
+        .then(() => {
+          setOpenPopup(false);
+          fetchBooks();
+        })
+        .catch(error => console.error('Error adding book:', error));
+    }
+  };
+
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (query) {
+      const fuse = new Fuse(books, {
+        keys: ['title', 'author'],
+        threshold: 0.3,
+      });
+      const results = fuse.search(query).map(result => result.item);
+      setFilteredBooks(results);
+    } else {
+      setFilteredBooks(books);
+    }
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Title</TableCell>
-            <TableCell>Author</TableCell>
-            <TableCell>Amazon Link</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {books.map((book) => (
-            <TableRow key={book.id}>
-              <TableCell>{book.title}</TableCell>
-              <TableCell>{book.author}</TableCell>
-              <TableCell>
-                <Link
-                  href={`https://a.co/dummy-link-for-${book.title}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Amazon Link
-                </Link>
-              </TableCell>
-              <TableCell>
-                <Button
-                  onClick={() => handleEdit(book)}
-                  variant="contained"
-                  color="primary"
-                >
-                  Edit
-                </Button>
-                <Button
-                  onClick={() => handleDelete(book.id)}
-                  variant="contained"
-                  color="secondary"
-                >
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      {editingBook && (
-        <form onSubmit={handleUpdate}>
-          <TextField
-            label="Title"
-            value={editingBook.title}
-            onChange={(e) =>
-              setEditingBook({ ...editingBook, title: e.target.value })
-            }
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Author"
-            value={editingBook.author}
-            onChange={(e) =>
-              setEditingBook({ ...editingBook, author: e.target.value })
-            }
-            fullWidth
-            margin="normal"
-          />
-          <Button type="submit" variant="contained" color="primary">
-            Update
-          </Button>
-          <Button
-            type="button"
-            onClick={() => setEditingBook(null)}
-            variant="contained"
-          >
-            Cancel
-          </Button>
-        </form>
-      )}
-    </TableContainer>
+    <Box>
+      <SearchBar searchQuery={searchQuery} handleSearch={handleSearch} />
+      <Button onClick={handleAdd} variant="contained" color="primary">Add Book</Button>
+      <BookTable
+        books={filteredBooks}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+      />
+      <PopupForm
+        open={openPopup}
+        handleClose={() => setOpenPopup(false)}
+        handleSubmit={handleSubmit}
+        book={editingBook}
+        setBook={setEditingBook}
+      />
+    </Box>
   );
 };
 

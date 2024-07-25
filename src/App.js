@@ -1,6 +1,10 @@
+// src/App.js
 import React, { useState } from "react";
+import { Container, Typography } from "@mui/material";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import BookList from "./components/BookList";
-import AddBook from "./components/AddBook";
+
+const theme = createTheme();
 
 const App = () => {
   const [refresh, setRefresh] = useState(false);
@@ -10,11 +14,14 @@ const App = () => {
   };
 
   return (
-    <div>
-      <h1>Book Management App</h1>
-      <AddBook onBookAdded={handleBookAdded} />
-      <BookList key={refresh} />
-    </div>
+    <ThemeProvider theme={theme}>
+      <Container>
+        <Typography variant="h2" component="h1" gutterBottom>
+          Mylib
+        </Typography>
+        <BookList key={refresh} />
+      </Container>
+    </ThemeProvider>
   );
 };
 
