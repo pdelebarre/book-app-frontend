@@ -1,6 +1,6 @@
 // src/components/BookList.js
 import React, { useState, useEffect } from 'react';
-import { Box, Button } from '@mui/material';
+import { Box, Button, Snackbar, Alert } from '@mui/material';
 import { getBooks, deleteBook, updateBook, addBook } from '../api';
 import Fuse from 'fuse.js';
 import BookTable from './BookTable';
@@ -13,6 +13,19 @@ const BookList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingBook, setEditingBook] = useState(null);
   const [openPopup, setOpenPopup] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "error",
+  });
+
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   useEffect(() => {
     fetchBooks();
@@ -44,24 +57,44 @@ const BookList = () => {
     setOpenPopup(true);
   };
 
-  const handleSubmit = () => {
-    if (editingBook.id) {
-      updateBook(editingBook.id, editingBook)
-        .then(() => {
-          setOpenPopup(false);
-          fetchBooks();
-        })
-        .catch(error => console.error('Error updating book:', error));
-    } else {
-      addBook(editingBook)
-        .then(() => {
-          setOpenPopup(false);
-          fetchBooks();
-        })
-        .catch(error => console.error('Error adding book:', error));
-    }
-  };
+const handleSubmit = () => {
+  const action = editingBook.id
+    ? updateBook(editingBook.id, editingBook)
+    : addBook(editingBook);
 
+  action
+    .then(() => {
+      setOpenPopup(false);
+      fetchBooks();
+      setSnackbar({
+        open: true,
+        message: `Book ${editingBook.id ? "updated" : "added"} successfully`,
+        severity: "success",
+      });
+    })
+    .catch((error) => {
+      if (error.response && error.response.status === 409) {
+        setSnackbar({
+          open: true,
+          message: "A book with this title and author already exists",
+          severity: "error",
+        });
+      } else {
+        console.error(
+          `Error ${editingBook.id ? "updating" : "adding"} book:`,
+          error
+        );
+        setSnackbar({
+          open: true,
+          message: `Error ${
+            editingBook.id ? "updating" : "adding"
+          } book. Please try again.`,
+          severity: "error",
+        });
+      }
+    });
+};
+  
   const handleSearch = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
@@ -81,7 +114,9 @@ const BookList = () => {
   return (
     <Box>
       <SearchBar searchQuery={searchQuery} handleSearch={handleSearch} />
-      <Button onClick={handleAdd} variant="contained" color="primary">Add Book</Button>
+      <Button onClick={handleAdd} variant="contained" color="primary">
+        Add Book
+      </Button>
       <BookTable
         books={filteredBooks}
         handleEdit={handleEdit}
@@ -94,6 +129,19 @@ const BookList = () => {
         book={editingBook}
         setBook={setEditingBook}
       />
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
