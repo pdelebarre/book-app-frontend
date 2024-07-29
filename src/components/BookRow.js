@@ -18,6 +18,10 @@ const BookRow = ({ book, handleEdit, handleDelete }) => {
       </TableCell>
       <TableCell>{book.title}</TableCell>
       <TableCell>{book.author}</TableCell>
+      <TableCell>{book.publishDate}</TableCell>
+      <TableCell>{book.language}</TableCell>
+      <TableCell>{book.pages}</TableCell>
+
       <TableCell>
         <Button
           onClick={() => handleEdit(book)}
