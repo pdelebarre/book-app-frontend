@@ -1,8 +1,16 @@
 // src/components/BookRow.js
 import React from "react";
-import { TableRow, TableCell, Button } from "@mui/material";
+import { TableRow, TableCell, IconButton } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const BookRow = ({ book, handleEdit, handleDelete }) => {
+  const confirmAndDelete = () => {
+    if (window.confirm("Are you sure you want to delete this book?")) {
+      handleDelete(book.id);
+    }
+  };
+
   return (
     <TableRow>
       <TableCell>
@@ -18,25 +26,22 @@ const BookRow = ({ book, handleEdit, handleDelete }) => {
       </TableCell>
       <TableCell>{book.title}</TableCell>
       <TableCell>{book.author}</TableCell>
-      <TableCell>{book.publishDate}</TableCell>
-      <TableCell>{book.language}</TableCell>
-      <TableCell>{book.pages}</TableCell>
-
+      <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
+        {book.publicationDate}
+      </TableCell>
+      <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
+        {book.language}
+      </TableCell>
+      <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
+        {book.pageCount}
+      </TableCell>
       <TableCell>
-        <Button
-          onClick={() => handleEdit(book)}
-          variant="contained"
-          color="primary"
-        >
-          Edit
-        </Button>
-        <Button
-          onClick={() => handleDelete(book.id)}
-          variant="contained"
-          color="secondary"
-        >
-          Delete
-        </Button>
+        <IconButton onClick={() => handleEdit(book)} color="primary">
+          <EditIcon />
+        </IconButton>
+        <IconButton onClick={confirmAndDelete} color="secondary">
+          <DeleteIcon />
+        </IconButton>
       </TableCell>
     </TableRow>
   );

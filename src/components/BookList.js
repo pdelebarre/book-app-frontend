@@ -35,7 +35,6 @@ const BookList = () => {
       .then((response) => {
         const booksData = response.data || [];
         setBooks(booksData);
-        console.log(booksData);
         setFilteredBooks(booksData);
       })
       .catch((error) => console.error("Error fetching books:", error));

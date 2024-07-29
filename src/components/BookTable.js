@@ -8,51 +8,38 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TextField,
   TableSortLabel,
   IconButton,
   Menu,
   MenuItem,
+  TextField,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import BookRow from "./BookRow";
 
 const BookTable = ({ books, handleEdit, handleDelete }) => {
-  const [filterTitle, setFilterTitle] = useState("");
-  const [filterAuthor, setFilterAuthor] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
+  const [filterConfig, setFilterConfig] = useState({
+    title: "",
+    author: "",
+    publicationDate: "",
+    language: "",
+    pageCount: "",
+  });
   const [anchorEl, setAnchorEl] = useState(null);
   const [filterTarget, setFilterTarget] = useState("");
 
-  const sortedFilteredBooks = books
-    .filter(
-      (book) =>
-        (book.title
-          ? book.title.toLowerCase().includes(filterTitle.toLowerCase())
-          : true) &&
-        (book.author
-          ? book.author.toLowerCase().includes(filterAuthor.toLowerCase())
-          : true)
-    )
-    .sort((a, b) => {
-      if (!sortConfig.key) return 0;
-      const directionMultiplier = sortConfig.direction === "asc" ? 1 : -1;
-      return (
-        (a[sortConfig.key] > b[sortConfig.key] ? 1 : -1) * directionMultiplier
-      );
-    });
-
-  const requestSort = (key) => {
+  const handleSort = (columnKey) => {
     let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
+    if (sortConfig.key === columnKey && sortConfig.direction === "asc") {
       direction = "desc";
     }
-    setSortConfig({ key, direction });
+    setSortConfig({ key: columnKey, direction });
   };
 
-  const handleFilterMenuOpen = (event, target) => {
+  const handleFilterMenuOpen = (event, columnKey) => {
     setAnchorEl(event.currentTarget);
-    setFilterTarget(target);
+    setFilterTarget(columnKey);
   };
 
   const handleFilterMenuClose = () => {
@@ -61,29 +48,58 @@ const BookTable = ({ books, handleEdit, handleDelete }) => {
   };
 
   const handleFilterChange = (event) => {
-    if (filterTarget === "title") {
-      setFilterTitle(event.target.value);
-    } else if (filterTarget === "author") {
-      setFilterAuthor(event.target.value);
-    }
+    setFilterConfig((prevConfig) => ({
+      ...prevConfig,
+      [filterTarget]: event.target.value,
+    }));
     handleFilterMenuClose();
   };
 
-  if (!books || books.length === 0) {
-    return <p>No books available.</p>;
-  }
+  const filteredBooks = books.filter((book) => {
+    return (
+      (filterConfig.title === "" ||
+        book.title.toLowerCase().includes(filterConfig.title.toLowerCase())) &&
+      (filterConfig.author === "" ||
+        book.author
+          .toLowerCase()
+          .includes(filterConfig.author.toLowerCase())) &&
+      (filterConfig.publicationDate === "" ||
+        book.publicationDate
+          .toLowerCase()
+          .includes(filterConfig.publicationDate.toLowerCase())) &&
+      (filterConfig.language === "" ||
+        book.language
+          .toLowerCase()
+          .includes(filterConfig.language.toLowerCase())) &&
+      (filterConfig.pageCount === "" ||
+        book.pageCount.toString().includes(filterConfig.pageCount))
+    );
+  });
+
+  const sortedBooks = filteredBooks.sort((a, b) => {
+    if (sortConfig.key === "") return 0;
+    const orderMultiplier = sortConfig.direction === "asc" ? 1 : -1;
+    return (a[sortConfig.key] < b[sortConfig.key] ? -1 : 1) * orderMultiplier;
+  });
 
   return (
     <TableContainer component={Paper}>
       <Table>
-        <TableHead>
+        <TableHead
+          style={{
+            position: "sticky",
+            top: 0,
+            backgroundColor: "#fff",
+            zIndex: 1,
+          }}
+        >
           <TableRow>
             <TableCell>Cover</TableCell>
             <TableCell>
               <TableSortLabel
                 active={sortConfig.key === "title"}
                 direction={sortConfig.direction}
-                onClick={() => requestSort("title")}
+                onClick={() => handleSort("title")}
               >
                 Title
               </TableSortLabel>
@@ -101,7 +117,7 @@ const BookTable = ({ books, handleEdit, handleDelete }) => {
                     label="Filter by title"
                     variant="outlined"
                     fullWidth
-                    value={filterTitle}
+                    value={filterConfig.title}
                     onChange={handleFilterChange}
                   />
                 </MenuItem>
@@ -111,7 +127,7 @@ const BookTable = ({ books, handleEdit, handleDelete }) => {
               <TableSortLabel
                 active={sortConfig.key === "author"}
                 direction={sortConfig.direction}
-                onClick={() => requestSort("author")}
+                onClick={() => handleSort("author")}
               >
                 Author
               </TableSortLabel>
@@ -129,20 +145,103 @@ const BookTable = ({ books, handleEdit, handleDelete }) => {
                     label="Filter by author"
                     variant="outlined"
                     fullWidth
-                    value={filterAuthor}
+                    value={filterConfig.author}
                     onChange={handleFilterChange}
                   />
                 </MenuItem>
               </Menu>
             </TableCell>
-            <TableCell>Publication Date</TableCell>
-            <TableCell>Language</TableCell>
-            <TableCell>Page Count</TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortConfig.key === "publicationDate"}
+                direction={sortConfig.direction}
+                onClick={() => handleSort("publicationDate")}
+              >
+                Publication Date
+              </TableSortLabel>
+              <IconButton
+                onClick={(e) => handleFilterMenuOpen(e, "publicationDate")}
+              >
+                <FilterListIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                keepMounted
+                open={Boolean(anchorEl) && filterTarget === "publicationDate"}
+                onClose={handleFilterMenuClose}
+              >
+                <MenuItem>
+                  <TextField
+                    label="Filter by date"
+                    variant="outlined"
+                    fullWidth
+                    value={filterConfig.publicationDate}
+                    onChange={handleFilterChange}
+                  />
+                </MenuItem>
+              </Menu>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortConfig.key === "language"}
+                direction={sortConfig.direction}
+                onClick={() => handleSort("language")}
+              >
+                Language
+              </TableSortLabel>
+              <IconButton onClick={(e) => handleFilterMenuOpen(e, "language")}>
+                <FilterListIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                keepMounted
+                open={Boolean(anchorEl) && filterTarget === "language"}
+                onClose={handleFilterMenuClose}
+              >
+                <MenuItem>
+                  <TextField
+                    label="Filter by language"
+                    variant="outlined"
+                    fullWidth
+                    value={filterConfig.language}
+                    onChange={handleFilterChange}
+                  />
+                </MenuItem>
+              </Menu>
+            </TableCell>
+            <TableCell>
+              <TableSortLabel
+                active={sortConfig.key === "pageCount"}
+                direction={sortConfig.direction}
+                onClick={() => handleSort("pageCount")}
+              >
+                Page Count
+              </TableSortLabel>
+              <IconButton onClick={(e) => handleFilterMenuOpen(e, "pageCount")}>
+                <FilterListIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                keepMounted
+                open={Boolean(anchorEl) && filterTarget === "pageCount"}
+                onClose={handleFilterMenuClose}
+              >
+                <MenuItem>
+                  <TextField
+                    label="Filter by pages"
+                    variant="outlined"
+                    fullWidth
+                    value={filterConfig.pageCount}
+                    onChange={handleFilterChange}
+                  />
+                </MenuItem>
+              </Menu>
+            </TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {sortedFilteredBooks.map((book, index) => (
+          {sortedBooks.map((book, index) => (
             <BookRow
               key={index}
               book={book}

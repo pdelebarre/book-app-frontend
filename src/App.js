@@ -16,7 +16,7 @@ const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <Container>
-        <Typography variant="h2" component="h1" gutterBottom>
+        <Typography variant="h3" component="h1" gutterBottom>
           Mylib
         </Typography>
         <BookList key={refresh} />
