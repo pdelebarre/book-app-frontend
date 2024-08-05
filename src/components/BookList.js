@@ -19,13 +19,6 @@ const BookList = () => {
     severity: "error",
   });
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbar({ ...snackbar, open: false });
-  };
-
   useEffect(() => {
     fetchBooks();
   }, []);
@@ -56,10 +49,8 @@ const BookList = () => {
     setOpenPopup(true);
   };
 
-  const handleSubmit = () => {
-    const action = editingBook.id
-      ? updateBook(editingBook.id, editingBook)
-      : addBook(editingBook);
+  const handleSubmit = (book) => {
+    const action = book && book.id ? updateBook(book.id, book) : addBook(book);
 
     action
       .then(() => {
@@ -67,7 +58,7 @@ const BookList = () => {
         fetchBooks();
         setSnackbar({
           open: true,
-          message: `Book ${editingBook.id ? "updated" : "added"} successfully`,
+          message: `Book ${book.id ? "updated" : "added"} successfully`,
           severity: "success",
         });
       })
@@ -80,13 +71,13 @@ const BookList = () => {
           });
         } else {
           console.error(
-            `Error ${editingBook.id ? "updating" : "adding"} book:`,
+            `Error ${book && book.id ? "updating" : "adding"} book:`,
             error
           );
           setSnackbar({
             open: true,
             message: `Error ${
-              editingBook.id ? "updating" : "adding"
+              book && book.id ? "updating" : "adding"
             } book. Please try again.`,
             severity: "error",
           });
@@ -131,10 +122,10 @@ const BookList = () => {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
         <Alert
-          onClose={handleCloseSnackbar}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           sx={{ width: "100%" }}
         >
