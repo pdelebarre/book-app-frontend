@@ -12,7 +12,6 @@ import {
 import BookSearch from "./BookSearch"; // Import BookSearch component
 
 const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
-  const [searchResults, setSearchResults] = useState([]);
   const [selectedBook, setSelectedBook] = useState(null);
 
   useEffect(() => {
@@ -137,7 +136,7 @@ const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
         <Button onClick={handleClose} color="secondary">
           Cancel
         </Button>
-        <Button onClick={() => handleSubmit(selectedBook)} color="primary">
+        <Button onClick={() => handleSubmit(book)} color="primary">
           Save
         </Button>
       </DialogActions>

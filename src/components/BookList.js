@@ -50,7 +50,16 @@ const BookList = () => {
   };
 
   const handleSubmit = (book) => {
-    const action = book && book.id ? updateBook(book.id, book) : addBook(book);
+    if (!book) {
+      console.error("No book data received for submission");
+      return;
+    }
+
+    console.log("book :>> ", book);
+
+    const action = book.id
+      ? updateBook(book.id, book)
+      : addBook(book.openLibraryId);
 
     action
       .then(() => {

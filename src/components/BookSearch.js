@@ -16,6 +16,7 @@ import {
   Paper,
   TablePagination,
   Checkbox,
+  Tooltip,
 } from "@mui/material";
 import { searchBooks } from "../api"; // Assumes you have a function to search books
 
@@ -65,14 +66,18 @@ const BookSearch = ({ onBookSelect }) => {
     setPage(0);
   };
 
-  const handleCheckboxChange = (bookId) => {
+  const handleCheckboxChange = (book) => {
     setSelectedBooks((prevSelectedBooks) => {
       const newSelectedBooks = { ...prevSelectedBooks };
+      const bookId = book.openLibraryId || book.title;
+
       if (newSelectedBooks[bookId]) {
         delete newSelectedBooks[bookId];
       } else {
-        newSelectedBooks[bookId] = true;
+        newSelectedBooks[bookId] = book; // Store the entire book object
       }
+
+      onBookSelect(book); // Pass the full book object to the parent
       return newSelectedBooks;
     });
   };
@@ -173,24 +178,28 @@ const BookSearch = ({ onBookSelect }) => {
               {filteredResults
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((book) => (
-                  <TableRow
-                    key={book.openLibraryId || book.title} // Ensure unique keys
-                    hover
-                    selected={isSelected(book.openLibraryId || book.title)}
+                  <Tooltip
+                    key={book.openLibraryId || book.title}
+                    title={book.openLibraryId || "No ID available"}
+                    arrow
                   >
-                    <TableCell>
-                      <Checkbox
-                        checked={isSelected(book.openLibraryId || book.title)}
-                        onChange={() =>
-                          handleCheckboxChange(book.openLibraryId || book.title)
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>{book.title}</TableCell>
-                    <TableCell>{book.author}</TableCell>
-                    <TableCell>{book.language}</TableCell>
-                    <TableCell>{book.pageCount}</TableCell>
-                  </TableRow>
+                    <TableRow
+                      key={book.openLibraryId || book.title}
+                      hover
+                      selected={isSelected(book.openLibraryId || book.title)}
+                    >
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected(book.openLibraryId || book.title)}
+                          onChange={() => handleCheckboxChange(book)} // Pass the full book object here
+                        />
+                      </TableCell>
+                      <TableCell>{book.title}</TableCell>
+                      <TableCell>{book.author}</TableCell>
+                      <TableCell>{book.language}</TableCell>
+                      <TableCell>{book.pageCount}</TableCell>
+                    </TableRow>
+                  </Tooltip>
                 ))}
             </TableBody>
           </Table>
