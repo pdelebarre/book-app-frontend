@@ -14,16 +14,15 @@ RUN npm install
 COPY . .
 
 # Define build arguments with default values
-# ARG REACT_APP_API_BASE_URL
-# ARG REACT_APP_API_PORT
+ARG REACT_APP_API_BASE_URL
+ARG REACT_APP_API_PORT
 
 # Ensure that environment variables are available during build
-# ENV REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
-# ENV REACT_APP_API_PORT=${REACT_APP_API_PORT}
+ENV REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
+ENV REACT_APP_API_PORT=${REACT_APP_API_PORT}
 
 # Build the React app with the environment variables
-RUN REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL} \
-    REACT_APP_API_PORT=${REACT_APP_API_PORT} npm run build
+RUN npm run build
 
 # Use nginx to serve the React app
 FROM nginx:alpine
