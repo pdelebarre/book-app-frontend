@@ -22,7 +22,8 @@ COPY . .
 # ENV REACT_APP_API_PORT=${REACT_APP_API_PORT}
 
 # Build the React app with the environment variables
-RUN npm run build
+RUN REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL} \
+    REACT_APP_API_PORT=${REACT_APP_API_PORT} npm run build
 
 # Use nginx to serve the React app
 FROM nginx:alpine
