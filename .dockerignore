@@ -10,8 +10,8 @@ node_modules
 coverage
 
 # Environment (contains sensitive data)
-# .env
-# .env.development
+.env
+.env.development
 
 # Files not required for production
 .editorconfig
