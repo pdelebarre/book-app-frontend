@@ -7,6 +7,8 @@ import BookTable from "./BookTable";
 import SearchBar from "./SearchBar";
 import PopupForm from "./PopupForm";
 
+import useWebSocket from "../hooks/useWebsocket";
+
 const BookList = () => {
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
@@ -22,6 +24,11 @@ const BookList = () => {
   useEffect(() => {
     fetchBooks();
   }, []);
+
+  // WebSocket hook to automatically refresh book list
+  useWebSocket(() => {
+    fetchBooks();
+  });
 
   const fetchBooks = () => {
     getBooks()
