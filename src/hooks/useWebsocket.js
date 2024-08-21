@@ -5,7 +5,9 @@ import { Client } from "@stomp/stompjs";
 const useWebSocket = (onMessageReceived) => {
   useEffect(() => {
     // Create a SockJS connection
-    const socket = new SockJS(`${process.env.REACT_APP_API_BASE_URL}/ws`);
+    const socket = new SockJS(
+      `${process.env.REACT_APP_API_BASE_URL}:${process.env.REACT_APP_API_PORT}/ws`
+    );
 
     // Initialize the STOMP client
     const stompClient = new Client({
