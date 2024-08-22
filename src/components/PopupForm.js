@@ -9,15 +9,17 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import BookSearch from "./BookSearch"; // Import BookSearch component
+import BarcodeReader from "react-barcode-reader"; // Import the BarcodeReader
+import BookSearch from "./BookSearch";
 
 const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
   const [selectedBook, setSelectedBook] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
-    // Clear selected book when dialog is closed or book changes
     if (!open) {
       setSelectedBook(null);
+      setIsScanning(false);
     }
   }, [open, book]);
 
@@ -28,20 +30,44 @@ const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
 
   const handleBookSelect = (book) => {
     setSelectedBook(book);
-    setBook(book); // Update the form with the selected book details
+    setBook(book);
+  };
+
+  const handleScan = (data) => {
+    if (data) {
+      setBook({ ...book, isbn: data });
+      setIsScanning(false); // Close scanning mode after successful scan
+    }
+  };
+
+  const handleError = (err) => {
+    console.error(err);
   };
 
   const isAddingNewBook = book && !book.id;
   const showBookSearch = isAddingNewBook && book.title && book.author;
 
-  if (!book) return null; // Add this check
+  if (!book) return null;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md">
       <DialogTitle>{book.id ? "Edit Book" : "Add Book"}</DialogTitle>
       <DialogContent>
-        {showBookSearch ? (
-          <BookSearch onBookSelect={handleBookSelect} />
+        {isScanning ? (
+          <Box sx={{ textAlign: "center" }}>
+            <BarcodeReader
+              onScan={handleScan}
+              onError={handleError}
+              style={{ width: "100%", height: "100%" }}
+            />
+            <Button
+              onClick={() => setIsScanning(false)}
+              color="secondary"
+              sx={{ mt: 2 }}
+            >
+              Close Scanner
+            </Button>
+          </Box>
         ) : (
           <Box display="flex" alignItems="flex-start">
             {/* Cover Image and ISBN */}
@@ -50,7 +76,7 @@ const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
               flexDirection="column"
               alignItems="center"
               mr={3}
-              width={160} // Set width for cover image container
+              width={160}
             >
               {book.coverImage && (
                 <Box
@@ -83,7 +109,7 @@ const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
                   value={book.title || ""}
                   onChange={handleChange}
                   fullWidth
-                  margin="dense" // Reduced margin
+                  margin="dense"
                   variant="outlined"
                   InputProps={{
                     style: { fontWeight: "bold", fontSize: "1.5rem" },
@@ -96,7 +122,7 @@ const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
                   value={book.author || ""}
                   onChange={handleChange}
                   fullWidth
-                  margin="dense" // Reduced margin
+                  margin="dense"
                   variant="outlined"
                   InputProps={{
                     style: { fontWeight: "bold", fontSize: "1.2rem" },
@@ -110,8 +136,8 @@ const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
                     value={book.pageCount || ""}
                     onChange={handleChange}
                     inputProps={{ maxLength: 4 }}
-                    sx={{ width: 120, mr: 2 }} // Adjust width and margin
-                    margin="dense" // Reduced margin
+                    sx={{ width: 120, mr: 2 }}
+                    margin="dense"
                     variant="outlined"
                     InputLabelProps={{ shrink: true }}
                   />
@@ -122,12 +148,19 @@ const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
                     onChange={handleChange}
                     inputProps={{ maxLength: 10 }}
                     sx={{ width: 200 }}
-                    margin="dense" // Reduced margin
+                    margin="dense"
                     variant="outlined"
                     InputLabelProps={{ shrink: true }}
                   />
                 </Box>
               </Box>
+              <Button
+                onClick={() => setIsScanning(true)}
+                variant="contained"
+                color="primary"
+              >
+                Scan ISBN
+              </Button>
             </Box>
           </Box>
         )}
