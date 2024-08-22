@@ -151,7 +151,7 @@ const BookTable = ({ books, handleEdit, handleDelete }) => {
                 </MenuItem>
               </Menu>
             </TableCell>
-            <TableCell>
+            <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
               <TableSortLabel
                 active={sortConfig.key === "publicationDate"}
                 direction={sortConfig.direction}
@@ -181,7 +181,7 @@ const BookTable = ({ books, handleEdit, handleDelete }) => {
                 </MenuItem>
               </Menu>
             </TableCell>
-            <TableCell>
+            <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
               <TableSortLabel
                 active={sortConfig.key === "language"}
                 direction={sortConfig.direction}
@@ -209,13 +209,13 @@ const BookTable = ({ books, handleEdit, handleDelete }) => {
                 </MenuItem>
               </Menu>
             </TableCell>
-            <TableCell>
+            <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
               <TableSortLabel
                 active={sortConfig.key === "pageCount"}
                 direction={sortConfig.direction}
                 onClick={() => handleSort("pageCount")}
               >
-                Page Count
+                Pages
               </TableSortLabel>
               <IconButton onClick={(e) => handleFilterMenuOpen(e, "pageCount")}>
                 <FilterListIcon />
