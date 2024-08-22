@@ -7,7 +7,6 @@ import BookTable from "./BookTable";
 import SearchBar from "./SearchBar";
 import PopupForm from "./PopupForm";
 
-import useWebSocket from "../hooks/useWebsocket";
 
 const BookList = () => {
   const [books, setBooks] = useState([]);
@@ -23,12 +22,19 @@ const BookList = () => {
 
   useEffect(() => {
     fetchBooks();
-  }, []);
 
-  // WebSocket hook to automatically refresh book list
-  useWebSocket(() => {
-    fetchBooks();
-  });
+    // Establish WebSocket connection
+    const baseURL = `${process.env.REACT_APP_API_BASE_URL}:${process.env.REACT_APP_API_PORT}/ws/books`;
+    const wsBaseURL=baseURL.replace(/^http/, "ws")
+    const socket = new WebSocket(wsBaseURL);
+
+    socket.onmessage = (event) => {
+      console.log("WebSocket message received:", event.data);
+      fetchBooks(); // Re-fetch books whenever an update is received
+    };
+
+    return () => socket.close();
+  }, []);
 
   const fetchBooks = () => {
     getBooks()
