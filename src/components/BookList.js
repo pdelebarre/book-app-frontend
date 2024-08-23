@@ -6,6 +6,7 @@ import Fuse from "fuse.js";
 import BookTable from "./BookTable";
 import SearchBar from "./SearchBar";
 import PopupForm from "./PopupForm";
+import { trackButtonClick } from "../util/metricsService";
 
 
 const BookList = () => {
@@ -47,17 +48,22 @@ const BookList = () => {
   };
 
   const handleDelete = (id) => {
+    trackButtonClick();
     deleteBook(id)
       .then(() => fetchBooks())
       .catch((error) => console.error("Error deleting book:", error));
   };
 
   const handleEdit = (book) => {
+        trackButtonClick();
+
     setEditingBook(book);
     setOpenPopup(true);
   };
 
   const handleAdd = () => {
+        trackButtonClick();
+
     setEditingBook({ id: null, title: "", author: "" });
     setOpenPopup(true);
   };
