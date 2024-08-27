@@ -36,10 +36,16 @@ const BookRow = ({ book, handleEdit, handleDelete }) => {
         {book.pageCount}
       </TableCell>
       <TableCell>
-        <IconButton onClick={() => handleEdit(book)} color="primary">
+        <IconButton onClick={() => handleEdit(book)} color="primary"
+          aria-label="edit"  
+        >
           <EditIcon />
         </IconButton>
-        <IconButton onClick={confirmAndDelete} color="secondary">
+        <IconButton
+          onClick={confirmAndDelete}
+          color="secondary"
+          aria-label="delete" // Add this line
+        >
           <DeleteIcon />
         </IconButton>
       </TableCell>
