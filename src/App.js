@@ -9,10 +9,6 @@ const theme = createTheme();
 const App = () => {
   const [refresh, setRefresh] = useState(false);
 
-  const handleBookAdded = () => {
-    setRefresh(!refresh);
-  };
-
   return (
     <ThemeProvider theme={theme}>
       <Container>
