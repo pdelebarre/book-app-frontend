@@ -1,4 +1,4 @@
-// src/components/BookTable.js
+// src/components/BookTable.tsx
 import React, { useState } from "react";
 import {
   Table,
@@ -16,28 +16,60 @@ import {
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import BookRow from "./BookRow";
+import { Book } from "../types";
 
-const BookTable = ({ books, handleEdit, handleDelete }) => {
-  const [sortConfig, setSortConfig] = useState({ key: "", direction: "asc" });
-  const [filterConfig, setFilterConfig] = useState({
+
+interface BookTableProps {
+  books: Book[];
+  handleEdit: (book: Book) => void;
+  handleDelete: (id: number | null) => void;
+}
+
+// Define types for state
+interface SortConfig {
+  key: keyof Book | "";
+  direction: "asc" | "desc";
+}
+
+interface FilterConfig {
+  title: string;
+  author: string;
+  publicationDate: string;
+  language: string;
+  pageCount: string;
+}
+
+const BookTable: React.FC<BookTableProps> = ({
+  books,
+  handleEdit,
+  handleDelete,
+}) => {
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: "",
+    direction: "asc",
+  });
+  const [filterConfig, setFilterConfig] = useState<FilterConfig>({
     title: "",
     author: "",
     publicationDate: "",
     language: "",
     pageCount: "",
   });
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [filterTarget, setFilterTarget] = useState("");
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [filterTarget, setFilterTarget] = useState<"" | keyof FilterConfig>("");
 
-  const handleSort = (columnKey) => {
-    let direction = "asc";
+  const handleSort = (columnKey: keyof Book) => {
+    let direction: "asc" | "desc" = "asc";
     if (sortConfig.key === columnKey && sortConfig.direction === "asc") {
       direction = "desc";
     }
     setSortConfig({ key: columnKey, direction });
   };
 
-  const handleFilterMenuOpen = (event, columnKey) => {
+  const handleFilterMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    columnKey: keyof FilterConfig
+  ) => {
     setAnchorEl(event.currentTarget);
     setFilterTarget(columnKey);
   };
@@ -47,7 +79,7 @@ const BookTable = ({ books, handleEdit, handleDelete }) => {
     setFilterTarget("");
   };
 
-  const handleFilterChange = (event) => {
+  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFilterConfig((prevConfig) => ({
       ...prevConfig,
       [filterTarget]: event.target.value,
@@ -64,22 +96,26 @@ const BookTable = ({ books, handleEdit, handleDelete }) => {
           .toLowerCase()
           .includes(filterConfig.author.toLowerCase())) &&
       (filterConfig.publicationDate === "" ||
-        book.publicationDate
-          .toLowerCase()
+        book.publicationDate?.toLowerCase()
           .includes(filterConfig.publicationDate.toLowerCase())) &&
       (filterConfig.language === "" ||
-        book.language
-          .toLowerCase()
+        book.language?.toLowerCase()
           .includes(filterConfig.language.toLowerCase())) &&
       (filterConfig.pageCount === "" ||
-        book.pageCount.toString().includes(filterConfig.pageCount))
+        book.pageCount?.toString().includes(filterConfig.pageCount))
     );
   });
 
   const sortedBooks = filteredBooks.sort((a, b) => {
     if (sortConfig.key === "") return 0;
     const orderMultiplier = sortConfig.direction === "asc" ? 1 : -1;
-    return (a[sortConfig.key] < b[sortConfig.key] ? -1 : 1) * orderMultiplier;
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+    // Use default value if undefined
+    return (
+      (aValue ?? "").toString().localeCompare((bValue ?? "").toString()) *
+      orderMultiplier
+    );
   });
 
   return (

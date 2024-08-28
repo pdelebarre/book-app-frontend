@@ -9,43 +9,48 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import BarcodeReader from "react-barcode-reader"; // Import the BarcodeReader
-import BookSearch from "./BookSearch";
 
-const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [isScanning, setIsScanning] = useState(false);
+import { Book } from "../types";
+
+interface PopupFormProps {
+  open: boolean;
+  handleClose: () => void;
+  handleSubmit: (book: Book) => void;
+  book?: Book;
+  setBook: (book: Book) => void;
+}
+
+const PopupForm: React.FC<PopupFormProps> = ({
+  open,
+  handleClose,
+  handleSubmit,
+  book,
+  setBook,
+}) => {
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
   useEffect(() => {
     if (!open) {
       setSelectedBook(null);
-      setIsScanning(false);
     }
   }, [open, book]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setBook({ ...book, [name]: value });
-  };
 
-  const handleBookSelect = (book) => {
-    setSelectedBook(book);
-    setBook(book);
-  };
+    // Convert the value to the appropriate type
+    const updatedValue: string | number | undefined =
+      name === "pageCount" ? (value ? Number(value) : undefined) : value;
 
-  const handleScan = (data) => {
-    if (data) {
-      setBook({ ...book, isbn: data });
-      setIsScanning(false); // Close scanning mode after successful scan
+    if (book) {
+      setBook({
+        ...book,
+        [name]: updatedValue,
+      });
     }
   };
 
-  const handleError = (err) => {
-    console.error(err);
-  };
 
-  const isAddingNewBook = book && !book.id;
-  const showBookSearch = isAddingNewBook && book.title && book.author;
 
   if (!book) return null;
 
@@ -53,22 +58,7 @@ const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
     <Dialog open={open} onClose={handleClose} maxWidth="md">
       <DialogTitle>{book.id ? "Edit Book" : "Add Book"}</DialogTitle>
       <DialogContent>
-        {isScanning ? (
-          <Box sx={{ textAlign: "center" }}>
-            <BarcodeReader
-              onScan={handleScan}
-              onError={handleError}
-              style={{ width: "100%", height: "100%" }}
-            />
-            <Button
-              onClick={() => setIsScanning(false)}
-              color="secondary"
-              sx={{ mt: 2 }}
-            >
-              Close Scanner
-            </Button>
-          </Box>
-        ) : (
+        
           <Box display="flex" alignItems="flex-start">
             {/* Cover Image and ISBN */}
             <Box
@@ -154,16 +144,10 @@ const PopupForm = ({ open, handleClose, handleSubmit, book, setBook }) => {
                   />
                 </Box>
               </Box>
-              <Button
-                onClick={() => setIsScanning(true)}
-                variant="contained"
-                color="primary"
-              >
-                Scan ISBN
-              </Button>
+
             </Box>
           </Box>
-        )}
+        
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="secondary">

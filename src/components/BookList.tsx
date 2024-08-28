@@ -1,5 +1,5 @@
-// src/components/BookList.js
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useState, useEffect } from "react";
 import { Box, Button, Snackbar, Alert } from "@mui/material";
 import { getBooks, deleteBook, updateBook, addBook } from "../api";
 import Fuse from "fuse.js";
@@ -7,15 +7,23 @@ import BookTable from "./BookTable";
 import SearchBar from "./SearchBar";
 import PopupForm from "./PopupForm";
 import { trackButtonClick } from "../util/metricsService";
+import { AxiosResponse } from "axios";
+import { Book } from "../types";
 
+interface SnackbarState {
+  open: boolean;
+  message: string;
+  severity: "error" | "success" | "info" | "warning";
+}
 
-const BookList = () => {
-  const [books, setBooks] = useState([]);
-  const [filteredBooks, setFilteredBooks] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [editingBook, setEditingBook] = useState(null);
-  const [openPopup, setOpenPopup] = useState(false);
-  const [snackbar, setSnackbar] = useState({
+const BookList: React.FC = () => {
+  // Initialize state with types
+  const [books, setBooks] = useState<Book[]>([]);
+  const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [editingBook, setEditingBook] = useState<Book>();
+  const [openPopup, setOpenPopup] = useState<boolean>(false);
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
     open: false,
     message: "",
     severity: "error",
@@ -26,7 +34,7 @@ const BookList = () => {
 
     // Establish WebSocket connection
     const baseURL = `${process.env.REACT_APP_API_BASE_URL}:${process.env.REACT_APP_API_PORT}/ws/books`;
-    const wsBaseURL=baseURL.replace(/^http/, "ws")
+    const wsBaseURL = baseURL.replace(/^http/, "ws");
     const socket = new WebSocket(wsBaseURL);
 
     socket.onmessage = (event) => {
@@ -37,38 +45,36 @@ const BookList = () => {
     return () => socket.close();
   }, []);
 
-  const fetchBooks = () => {
+  const fetchBooks = (): void => {
     getBooks()
       .then((response) => {
-        const booksData = response.data || [];
+        const booksData: Book[] = response.data || [];
         setBooks(booksData);
         setFilteredBooks(booksData);
       })
       .catch((error) => console.error("Error fetching books:", error));
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number | null): void => {
     trackButtonClick();
-    deleteBook(id)
+    id && deleteBook(id)
       .then(() => fetchBooks())
       .catch((error) => console.error("Error deleting book:", error));
   };
 
-  const handleEdit = (book) => {
-        trackButtonClick();
-
+  const handleEdit = (book: Book): void => {
+    trackButtonClick();
     setEditingBook(book);
     setOpenPopup(true);
   };
 
-  const handleAdd = () => {
-        trackButtonClick();
-
-    setEditingBook({ id: null, title: "", author: "" });
+  const handleAdd = (): void => {
+    trackButtonClick();
+    setEditingBook({ id:-1, title: "", author: "" });
     setOpenPopup(true);
   };
 
-  const handleSubmit = (book) => {
+  const handleSubmit = (book: Book | null): void => {
     if (!book) {
       console.error("No book data received for submission");
       return;
@@ -76,9 +82,10 @@ const BookList = () => {
 
     console.log("book :>> ", book);
 
-    const action = book.id
-      ? updateBook(book.id, book)
-      : addBook(book.openLibraryId);
+    // Explicitly handle the promise type here
+    const action: Promise<AxiosResponse<any, any>> = book.id
+      ? updateBook(book.id, book) // This should always return a Promise
+      : addBook(book.openLibraryId!); // This should also always return a Promise
 
     action
       .then(() => {
@@ -113,7 +120,7 @@ const BookList = () => {
       });
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const query = e.target.value;
     setSearchQuery(query);
 

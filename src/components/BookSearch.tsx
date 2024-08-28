@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import {
   Container,
   TextField,
@@ -20,20 +20,27 @@ import {
 } from "@mui/material";
 import { searchBooks } from "../api"; // Assumes you have a function to search books
 
-const BookSearch = ({ onBookSelect }) => {
-  const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
-  const [languageFilter, setLanguageFilter] = useState("");
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("title");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [selectedBooks, setSelectedBooks] = useState({});
+import { Book } from "../types";
 
-  const handleSearch = async (e) => {
+// Define the props for the component
+interface BookSearchProps {
+  onBookSelect: (book: Book) => void;
+}
+
+const BookSearch: React.FC<BookSearchProps> = ({ onBookSelect }) => {
+  const [title, setTitle] = useState<string>("");
+  const [author, setAuthor] = useState<string>("");
+  const [languageFilter, setLanguageFilter] = useState<string>("");
+  const [results, setResults] = useState<Book[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState<keyof Book>("title");
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(5);
+  const [selectedBooks, setSelectedBooks] = useState<Record<string, Book>>({});
+
+  const handleSearch = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -47,26 +54,28 @@ const BookSearch = ({ onBookSelect }) => {
     }
   };
 
-  const handleRequestSort = (property) => {
+  const handleRequestSort = (property: keyof Book) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const handleLanguageFilterChange = (e) => {
+  const handleLanguageFilterChange = (e: ChangeEvent<HTMLInputElement>) => {
     setLanguageFilter(e.target.value);
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event) => {
+  const handleChangeRowsPerPage = (
+    event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const handleCheckboxChange = (book) => {
+  const handleCheckboxChange = (book: Book) => {
     setSelectedBooks((prevSelectedBooks) => {
       const newSelectedBooks = { ...prevSelectedBooks };
       const bookId = book.openLibraryId || book.title;
@@ -82,23 +91,32 @@ const BookSearch = ({ onBookSelect }) => {
     });
   };
 
-  const isSelected = (bookId) => !!selectedBooks[bookId];
+  const isSelected = (bookId: string) => !!selectedBooks[bookId];
 
-  const filteredResults = results
-    .filter((book) =>
-      book.language
-        ? book.language.toLowerCase().includes(languageFilter.toLowerCase())
-        : true
-    )
-    .sort((a, b) => {
-      if (a[orderBy] < b[orderBy]) {
-        return order === "asc" ? -1 : 1;
+const filteredResults = results
+  .filter((book) =>
+    book.language
+      ? book.language.toLowerCase().includes(languageFilter.toLowerCase())
+      : true
+  )
+  .sort((a, b) => {
+    // Ensure that a[orderBy] and b[orderBy] are defined
+    if (a[orderBy] !== undefined && b[orderBy] !== undefined) {
+      const aValue = a[orderBy] as string | number; // Adjust based on expected type
+      const bValue = b[orderBy] as string | number;
+
+      // Ensure values are of comparable types
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return order === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else if (typeof aValue === "number" && typeof bValue === "number") {
+        return order === "asc" ? aValue - bValue : bValue - aValue;
       }
-      if (a[orderBy] > b[orderBy]) {
-        return order === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
+    }
+    return 0;
+  });
+
 
   return (
     <Container>
@@ -184,7 +202,6 @@ const BookSearch = ({ onBookSelect }) => {
                     arrow
                   >
                     <TableRow
-                      key={book.openLibraryId || book.title}
                       hover
                       selected={isSelected(book.openLibraryId || book.title)}
                     >
