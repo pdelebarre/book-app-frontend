@@ -9,7 +9,7 @@
     "@mui/material": "^6.4.7",
     "@stomp/stompjs": "^7.0.0",
     "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^13.4.0",
+    "@testing-library/react": "^16.2.0",
 
     "@types/jest": "^29.5.14",
 
